@@ -12,10 +12,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
+const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const categoryRoutes = require('./routes/categories');
 const transactionRoutes = require('./routes/transactions');
 
+app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/transactions', transactionRoutes);
@@ -31,6 +33,7 @@ app.get('/', (req, res) => {
     message: 'Welcome to POS System API',
     version: '1.0.0',
     endpoints: {
+      auth: '/api/auth',
       products: '/api/products',
       categories: '/api/categories',
       transactions: '/api/transactions',

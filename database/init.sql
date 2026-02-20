@@ -2,6 +2,23 @@
 CREATE DATABASE IF NOT EXISTS pos_db;
 USE pos_db;
 
+-- Users Table
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100),
+    role ENUM('user', 'admin') DEFAULT 'user',
+    is_active BOOLEAN DEFAULT TRUE,
+    last_login TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_username (username),
+    INDEX idx_email (email),
+    INDEX idx_role (role)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Categories Table
 CREATE TABLE IF NOT EXISTS categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -82,3 +99,13 @@ INSERT INTO products (name, description, price, quantity, category_id, image_url
 ('Notebook Set', 'Set of 3 lined notebooks', 15.99, 60, 4, 'https://images.unsplash.com/photo-1517842645767-c639042777db?w=400', 'BOOK-002'),
 ('Plant Pot', 'Ceramic plant pot with drainage - medium', 24.99, 35, 5, 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=400', 'HOME-001'),
 ('LED Desk Lamp', 'Adjustable LED desk lamp with touch control', 34.99, 45, 5, 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400', 'HOME-002');
+
+-- Insert Sample Users
+-- Password for all users: password123
+-- Passwords are hashed using bcrypt
+INSERT INTO users (username, email, password, full_name, role) VALUES
+('admin', 'admin@pos-system.com', '$2a$10$0gvT0jgDUHfNYlqWyRyg/OSoSIR7TmCWIxRsHNHNIlITn0skTr9Lu', 'System Administrator', 'admin'),
+('manager', 'manager@pos-system.com', '$2a$10$.gfFvIJ4DIdsPW5soMI/ferMFQdiH7D55CTNCTA606F8RikCUdnIW', 'Store Manager', 'admin'),
+('cashier1', 'cashier1@pos-system.com', '$2a$10$9SXYk6S.NIXMKI3ZdGtXX.gd7hrYXWSbWG4tHHaucQjfyIkIQgwGO', 'Cashier One', 'user'),
+('cashier2', 'cashier2@pos-system.com', '$2a$10$.n7jWh5JziFHDV.vFcCo6.NP4eww9SIQbzKp0r2IiXZlN.MNMWg6a', 'Cashier Two', 'user'),
+('user', 'user@pos-system.com', '$2a$10$.XTO1UkDGa/Nvg36Y3OkV.NUqPGw8ZRXeK38WwKETNXf0tZ5iUYjO', 'Regular User', 'user');
