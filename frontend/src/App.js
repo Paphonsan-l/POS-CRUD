@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import './App.css';
+
+// Context
+import { AuthProvider, useAuth } from './context/AuthContext';
+
+// Auth Components
+import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // POS Components
 import POS from './components/POS/POS';
@@ -10,39 +18,116 @@ import Dashboard from './components/Admin/Dashboard';
 import ProductList from './components/Admin/ProductList';
 import ProductForm from './components/Admin/ProductForm';
 
-function App() {
-  const [currentView, setCurrentView] = useState('pos');
+function AppContent() {
+  const { isAuthenticated, user, logout, isAdmin } = useAuth();
 
   return (
-    <Router>
-      <div className="App">
+    <div className="App">
+      {/* Show navbar only if authenticated */}
+      {isAuthenticated && (
         <nav className="navbar">
           <div className="navbar-brand">
-            <h1>POS System</h1>
+            <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <h1>POS System</h1>
+            </Link>
           </div>
           <div className="navbar-menu">
-            <Link to="/" className={currentView === 'pos' ? 'active' : ''} onClick={() => setCurrentView('pos')}>
+            <Link to="/" className="nav-link">
               Storefront
             </Link>
-            <Link to="/admin" className={currentView === 'admin' ? 'active' : ''} onClick={() => setCurrentView('admin')}>
-              Dashboard
-            </Link>
-            <Link to="/admin/products" className={currentView === 'products' ? 'active' : ''} onClick={() => setCurrentView('products')}>
-              Products
-            </Link>
+            {isAdmin() && (
+              <>
+                <Link to="/admin" className="nav-link">
+                  Dashboard
+                </Link>
+                <Link to="/admin/products" className="nav-link">
+                  Products
+                </Link>
+              </>
+            )}
+            <div className="navbar-user">
+              <span className="user-info">
+                {user?.full_name || user?.username}
+                {user?.role === 'admin' && <span className="admin-badge">Admin</span>}
+              </span>
+              <button onClick={logout} className="btn btn-logout">
+                Logout
+              </button>
+            </div>
           </div>
         </nav>
+      )}
 
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<POS />} />
-            <Route path="/admin" element={<Dashboard />} />
-            <Route path="/admin/products" element={<ProductList />} />
-            <Route path="/admin/products/new" element={<ProductForm />} />
-            <Route path="/admin/products/edit/:id" element={<ProductForm />} />
-          </Routes>
-        </main>
-      </div>
+      <main className={isAuthenticated ? "main-content" : "main-content-full"}>
+        <Routes>
+          {/* Public routes */}
+          <Route 
+            path="/login" 
+            element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} 
+          />
+          <Route 
+            path="/register" 
+            element={isAuthenticated ? <Navigate to="/" replace /> : <Register />} 
+          />
+
+          {/* Protected routes - require authentication */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <POS />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin only routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/products"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <ProductList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/products/new"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <ProductForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/products/edit/:id"
+            element={
+              <ProtectedRoute adminOnly={true}>
+                <ProductForm />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Redirect any unknown route */}
+          <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </Router>
   );
 }
